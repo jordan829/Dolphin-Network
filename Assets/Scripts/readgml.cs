@@ -19,14 +19,14 @@ public class readgml : MonoBehaviour {
 		public int offset_x, offset_y, offset_z;
 	}
 
-	public struct GRAPH {
-		public int n_nodes;
-		public int n_edges;
-		public List<NODE> nodes;
-		public List<EDGE> edges;
+	public class GRAPH {
+		public int n_nodes = 0;
+		public int n_edges = 0;
+		public List<NODE> nodes = new List<NODE>();
+		public List<EDGE> edges = new List<EDGE>();
 	}
 
-	public GRAPH graph;
+    public GRAPH graph = new GRAPH();
 
 	// Use this for initialization
 	void Start () {
@@ -35,16 +35,19 @@ public class readgml : MonoBehaviour {
 		//get_degrees
 		//red_edges
 		//free_buffer
-		graph.n_nodes = 0;
-		graph.n_edges = 0;
+
 		read_file("dolphins.gml");
-		//int result = printGraph();
-		//print("Graph result = " + result);
+
+		bool result = printGraph();
+
+        if (result)
+            print("IT'S FIXED!!");
+        else
+            print("Try again :(");
 	}
 
 	public int read_file(string filename)
 	{
-        print("meow");
 		string line;
 
 		System.IO.StreamReader file = 
@@ -54,86 +57,105 @@ public class readgml : MonoBehaviour {
 		int lastID = -1;
 		int lastSource = -1;
 		bool newEdge = false;
-		while((line = file.ReadLine()) != null)
+
+        while ((line = file.ReadLine()) != null)
 		{
-			int i = 0;
 			char[] delims = {' '};
 			string[] words = line.Split(delims);
-			/*while( i < words.Length ) {
-				if( words[i].CompareTo("") == 0 ) {
-					i++;
-					break;
-				}
-				if( words[i].CompareTo("id") == 0 ) {
-					newNode = true;
 
-					// add new node to graph, set id as words[i+1]
-					lastID = Convert.ToInt32( words[i+1] );
-					break;
-				}
-				if( words[i].CompareTo("label") == 0 ) {
-					if(newNode) {
-						// get the last node created, add a label
-						// ignore quotations
-						NODE n = new NODE();
-						n.id = lastID;
-						n.label = words[i+1];
-						graph.nodes.Add(n);
-						graph.n_nodes++;
+            int i = 0;
+            while (i < words.Length)
+            {
+                if (words[i].CompareTo("") == 0)
+                {
+                    i++;
+                    continue;
+                }
 
-						newNode = false;
-						lastID = -1;
-						break;
-					}
-					else {
-						// unknown id read, no label accompanying
-						break;
-					}
-				}
-				if( words[i].CompareTo("source") == 0 ) {
-					newEdge = true;
+                else if (words[i].CompareTo("id") == 0)
+                {
+                    newNode = true;
 
-					// add new edge from indexes
-					lastSource = Convert.ToInt32( words[i+1] );
-					break;
-				}
-				if( words[i].CompareTo("target") == 0) {
-					if(newEdge) {
-						// get last edge value created
-						EDGE e = new EDGE();
-						e.source = lastSource;
-						e.target = Convert.ToInt32( words[i+1] );
-						graph.edges[graph.n_edges] = e;
-						graph.n_edges++;
+                    // add new node to graph, set id as words[i+1]
+                    lastID = Convert.ToInt32(words[i + 1]);
+                    break;
+                }
 
-						newEdge = false;
-						lastSource = -1;
-						break;
-					}
-					else {
-						// failure
-						break;
-					}
-				}
-			}*/
+                else if (words[i].CompareTo("label") == 0)
+                {
+                    if (newNode)
+                    {
+                        // get the last node created, add a label
+                        // ignore quotations
+                        NODE n = new NODE();
+                        n.id = lastID;
+                        n.label = words[i + 1];
+                        graph.nodes.Insert(graph.n_nodes, n);
+                        graph.n_nodes++;
+
+                        newNode = false;
+                        lastID = -1;
+                        break;
+                    }
+                    else {
+                        // unknown id read, no label accompanying
+                        break;
+                    }
+                }
+
+                else if (words[i].CompareTo("source") == 0)
+                {
+                    newEdge = true;
+
+                    // add new edge from indexes
+                    lastSource = Convert.ToInt32(words[i + 1]);
+                    break;
+                }
+
+                else if (words[i].CompareTo("target") == 0)
+                {
+                    if (newEdge)
+                    {
+                        // get last edge value created
+                        EDGE e = new EDGE();
+                        e.source = lastSource;
+                        e.target = Convert.ToInt32(words[i + 1]);
+                        graph.edges.Insert(graph.n_edges, e);
+                        graph.n_edges++;
+
+                        newEdge = false;
+                        lastSource = -1;
+                        break;
+                    }
+                    else {
+                        // failure
+                        break;
+                    }
+                }
+
+                else // ignore any other line, namely "[" and "]"
+                {
+                    break;
+                }
+            }
 		}
 
         file.Close();
 		return 1;
 	}
 
-	/*public int printGraph() {
+	public bool printGraph() {
 		if(graph.n_nodes <= 0 || graph.n_edges <= 0) {
-			return -1;
+			return false;
 		}
 		else {
 			for(int i = 0; i < graph.n_nodes; i++) {
-				print("Node " + i + ": " + graph.nodes[i].id );//+ ", " + graph.nodes[i].label);
+				print("Node " + i + ": id = " + graph.nodes[i].id + ", label = " + graph.nodes[i].label);
 			}
 			for(int x = 0; x < graph.n_edges; x++) {
-				print("Edge " + x + ": " + graph.edges[x].source + ", " + graph.edges[x].target);
+				print("Edge " + x + ": source = " + graph.edges[x].source + ", target = " + graph.edges[x].target);
 			}
 		}
-		return 1;
-	}*/
+		return true;
+	}
 }
