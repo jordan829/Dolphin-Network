@@ -22,7 +22,7 @@ public class ForceDirected : MonoBehaviour {
 
 	public Transform Node_fab;
 	public bool drawn = false;
-	public static List<GameObject> gObjects;
+	public static List<Transform> gObjects = new List<Transform>();
 
 	void Start()
 	{
@@ -171,18 +171,20 @@ public class ForceDirected : MonoBehaviour {
 	public void DrawGraph()
 	{
 		if(drawn) {
-			print (gObjects.Count);
+			/* print (gObjects.Count);
 			while( gObjects.Count > 0 ) {
 				Destroy (gObjects[0]);
 				gObjects.RemoveAt (0);
 			}
-			drawn = false;
+			drawn = false; */
+            return;
 		}
 
 		for (int i = 0; i < nodes_length; i++) {
 			readgml.NODE n = graph.nodes [i];
-			GameObject Node = Instantiate (Node_fab, new Vector3 (n.x_pos, n.y_pos, n.z_pos), Quaternion.identity) as GameObject;
-			gObjects.Add (Node);
+            Transform node = ((Transform)Instantiate(Node_fab, new Vector3(n.x_pos, n.y_pos, n.z_pos), Quaternion.identity));
+			gObjects.Add (node);
+            node.parent = transform;
 			//Node.transform.parent = transform;
 			//Node_fab.SetParent (transform, true);
 		}
