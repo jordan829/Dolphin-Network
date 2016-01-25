@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System;
+using Random = UnityEngine.Random;
 
 public class readgml : MonoBehaviour {
 
@@ -13,10 +14,10 @@ public class readgml : MonoBehaviour {
 	public struct NODE {
 		public int id;
 		public string label;
-		public int x_pos, y_pos, z_pos;
-		public int temp_x, temp_y, temp_z;
-		public int force;
-		public int offset_x, offset_y, offset_z;
+		public float x_pos, y_pos, z_pos;
+		public float temp_x, temp_y, temp_z;
+		public float force;
+		public float offset_x, offset_y, offset_z;
 	}
 
 	public class GRAPH {
@@ -38,7 +39,13 @@ public class readgml : MonoBehaviour {
 
 		read_file("dolphins.gml");
 
-		bool result = printGraph();
+		//graph complete
+		ForceDirected.InitGraph (graph);
+		ForceDirected.GenerateGraph ();
+		//ForceDirected f = new ForceDirected ();
+		//f.DrawGraph ();
+	
+		bool result = true; //printGraph();
 
         if (result)
             print("IT'S FIXED!!");
@@ -57,6 +64,7 @@ public class readgml : MonoBehaviour {
 		int lastID = -1;
 		int lastSource = -1;
 		bool newEdge = false;
+		float area = 25.0f;
 
         while ((line = file.ReadLine()) != null)
 		{
@@ -90,6 +98,15 @@ public class readgml : MonoBehaviour {
                         NODE n = new NODE();
                         n.id = lastID;
                         n.label = words[i + 1];
+
+						n.x_pos = Mathf.Floor (Random.Range(-area, area));
+						n.y_pos = Mathf.Floor (Random.Range(-area, area));
+						n.z_pos = Mathf.Floor (Random.Range(-area, area));
+
+						n.temp_x = -50.0f;
+						n.temp_y = -50.0f;
+						n.temp_z = -50.0f;
+
                         graph.nodes.Insert(graph.n_nodes, n);
                         graph.n_nodes++;
 
@@ -150,12 +167,14 @@ public class readgml : MonoBehaviour {
 		}
 		else {
 			for(int i = 0; i < graph.n_nodes; i++) {
-				print("Node " + i + ": id = " + graph.nodes[i].id + ", label = " + graph.nodes[i].label);
+				print("Node " + i + ": label = " + graph.nodes[i].label + " (" + graph.nodes[i].x_pos + ", " + graph.nodes[i].y_pos +
+					", " + graph.nodes[i].z_pos + ")");
 			}
 			for(int x = 0; x < graph.n_edges; x++) {
 				print("Edge " + x + ": source = " + graph.edges[x].source + ", target = " + graph.edges[x].target);
 			}
 		}
+		 
 		return true;
 	}
 }

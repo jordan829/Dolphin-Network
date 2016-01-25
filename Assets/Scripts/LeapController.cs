@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using Leap;
 
-public class LeapControled : MonoBehaviour
+public class LeapController : MonoBehaviour
 {
     Controller controller;
 
@@ -31,7 +31,7 @@ public class LeapControled : MonoBehaviour
             handDelta = currPosition - prevPosition;
             handDelta *= 1000;
 
-            transform.rotation = Quaternion.Euler(-handDelta.y, -handDelta.x, 0) * transform.rotation;
+            transform.rotation = Quaternion.Euler(handDelta.y, -handDelta.x, 0) * transform.rotation;
         }
 
         prevPosition = currPosition;
