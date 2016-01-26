@@ -22,7 +22,9 @@ public class ForceDirected : MonoBehaviour {
 
 	public Transform Node_fab;
 	public bool drawn = false;
-	public static List<Transform> gObjects = new List<Transform>();
+	public static List<Transform> nodeList = new List<Transform>();
+    public Transform Edge_fab;
+    public static List<Transform> edgeList = new List<Transform>();
 
 	void Start()
 	{
@@ -183,13 +185,31 @@ public class ForceDirected : MonoBehaviour {
 		for (int i = 0; i < nodes_length; i++) {
 			readgml.NODE n = graph.nodes [i];
             Transform node = ((Transform)Instantiate(Node_fab, new Vector3(n.x_pos, n.y_pos, n.z_pos), Quaternion.identity));
-			gObjects.Add (node);
+			nodeList.Add (node);
+
+            // set the node parent to be layout
             node.parent = transform;
-			//Node.transform.parent = transform;
-			//Node_fab.SetParent (transform, true);
 		}
 
-		drawn = true;
+        for (int i = 0; i < edges_length; i++) {
+            // instantiate edge
+            readgml.EDGE e = graph.edges[i];
+            Transform edge = ((Transform)Instantiate(Edge_fab));
+            edgeList.Add(edge);
+
+            // grab coordinates from graph edges
+            Vector3[] positions = new Vector3[2];
+            readgml.NODE x = graph.nodes[graph.edges[i].source];
+            positions[0] = new Vector3(x.x_pos, x.y_pos, x.z_pos);
+            x = graph.nodes[graph.edges[i].target];
+            positions[1] = new Vector3(x.x_pos, x.y_pos, x.z_pos);
+            edge.gameObject.GetComponent<LineRenderer>().SetPositions(positions);
+
+            // set the edge parent to be layout
+            edge.parent = transform;
+        }
+
+        drawn = true;
 	}
 
 	public void Update()
