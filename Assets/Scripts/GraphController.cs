@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using Leap;
 
-public class LeapController : MonoBehaviour
+public class GraphController : MonoBehaviour
 {
     Controller controller;
 
@@ -19,15 +19,12 @@ public class LeapController : MonoBehaviour
 
     void Update()
     {
-        mainHand = controller.Frame().Hands.Frontmost;
+        mainHand = controller.Frame().Hands.Rightmost;
 
         currPosition = mainHand.PalmPosition.ToUnityScaled();
 
-        transform.gameObject.GetComponent<Renderer>().material.color = Color.white;
-
-        if (mainHand.PinchStrength == 1.0)
+		if (controller.Frame().Hands.Count == 1 && mainHand.PinchStrength == 1.0)
         {
-            transform.gameObject.GetComponent<Renderer>().material.color = Color.green;
             handDelta = currPosition - prevPosition;
             handDelta *= 1000;
 
