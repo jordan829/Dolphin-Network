@@ -185,6 +185,7 @@ public class ForceDirected : MonoBehaviour {
 		for (int i = 0; i < nodes_length; i++) {
 			readgml.NODE n = graph.nodes [i];
             Transform node = ((Transform)Instantiate(Node_fab, new Vector3(n.x_pos, n.y_pos, n.z_pos), Quaternion.identity));
+			node.name = i.ToString ();
 			nodeList.Add (node);
 
             // set the node parent to be layout
@@ -195,6 +196,7 @@ public class ForceDirected : MonoBehaviour {
             // instantiate edge
             readgml.EDGE e = graph.edges[i];
             Transform edge = ((Transform)Instantiate(Edge_fab));
+			edge.name = "(" + e.source + "," + e.target + ")";
             edgeList.Add(edge);
 
             // grab coordinates from graph edges

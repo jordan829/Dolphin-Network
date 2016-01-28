@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+﻿/*using UnityEngine;
 using System.Collections;
 using Leap;
 
@@ -68,3 +68,4 @@ public class CameraController : MonoBehaviour {
 		prevDistance = currDistance;
 	}
 }
+*/

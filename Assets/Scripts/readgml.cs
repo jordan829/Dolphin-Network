@@ -18,12 +18,13 @@ public class readgml : MonoBehaviour {
 		public float temp_x, temp_y, temp_z;
 		public float force;
 		public float offset_x, offset_y, offset_z;
+		public List<EDGE> edgeList;
 	}
 
 	public class GRAPH {
 		public int n_nodes = 0;
 		public int n_edges = 0;
-		public List<NODE> nodes = new List<NODE>();
+		public Dictionary<int, NODE> nodes = new Dictionary<int, NODE>();
 		public List<EDGE> edges = new List<EDGE>();
 	}
 
@@ -44,6 +45,8 @@ public class readgml : MonoBehaviour {
 		ForceDirected.GenerateGraph ();
 		//ForceDirected f = new ForceDirected ();
 		//f.DrawGraph ();
+
+		GraphController.setGraph (graph);
 	
 		bool result = true; //printGraph();
 
@@ -107,7 +110,9 @@ public class readgml : MonoBehaviour {
 						n.temp_y = -50.0f;
 						n.temp_z = -50.0f;
 
-                        graph.nodes.Insert(graph.n_nodes, n);
+						n.edgeList = new List<EDGE> ();
+
+                        graph.nodes.Add(n.id, n);
                         graph.n_nodes++;
 
                         newNode = false;
@@ -139,6 +144,9 @@ public class readgml : MonoBehaviour {
                         e.target = Convert.ToInt32(words[i + 1]);
                         graph.edges.Insert(graph.n_edges, e);
                         graph.n_edges++;
+
+						graph.nodes [e.source].edgeList.Add (e);
+						graph.nodes [e.target].edgeList.Add (e);
 
                         newEdge = false;
                         lastSource = -1;
