@@ -35,6 +35,7 @@ public class GraphController : MonoBehaviour {
 	bool startAction;
 	float lastTime;
 	float timeDiff;
+    float defaultFOV;
 
     // called when the script instance is being loaded.
     void Awake()
@@ -42,6 +43,12 @@ public class GraphController : MonoBehaviour {
         controller = new Controller();
 		startAction = false;
 		deselect = false;
+        controller.EnableGesture(Gesture.GestureType.TYPE_SWIPE);
+        controller.Config.SetFloat("Gesture.Swipe.MinLength", 200.0f); // minimum distance of swipe: 200 mm
+        controller.Config.SetFloat("Gesture.Swipe.MinVelocity", 750f); // minimum velocity of swipe: 750 mm / s
+        controller.Config.Save();
+        defaultFOV = 65.0f;
+        camera.fieldOfView = defaultFOV;
     }
 
 	public static void setGraph (readgml.GRAPH g) {
@@ -72,7 +79,7 @@ public class GraphController : MonoBehaviour {
 	//////////////////////////////////////////////////////////////////////////////////////////
 
 		// USING CURSOR
-		if (extendedR.Count == 1) {
+		if (extendedR.Count == 1 && rightHand.IsRight) {
 			taggedText.GetComponent<UnityEngine.UI.Text> ().text = "Using Cursor";
 			cursor.transform.position = new Vector3(indexFinger.TipPosition.ToUnityScaled ().x * 50, 
 				(indexFinger.TipPosition.ToUnityScaled ().y * 30) - 5,
@@ -108,6 +115,53 @@ public class GraphController : MonoBehaviour {
 				}
 			}
 
+
+            // DETECT A  LEFT HAND SWIPE TO DELETE A NODE
+            GestureList maybeGestures = controller.Frame().Gestures();
+            for (int i = 0; i < maybeGestures.Count; i++) {
+                Gesture gesture = maybeGestures[i];
+                // check if the gesture is invalid which can happen
+                if (gesture.IsValid && gesture.Type == Gesture.GestureType.TYPE_SWIPE) {
+                    HandList involvedHands = gesture.Hands;
+                    if (involvedHands.Count > 0 && involvedHands.Count < 2 && involvedHands[0].IsLeft)
+                    {
+                        // delete the node
+                        if (hoveredNode != null) {
+                            int dolphinID = 0; Int32.TryParse(hoveredNode.name, out dolphinID);
+                            readgml.NODE toDeleteNode = graph.nodes[dolphinID];
+                            
+                            // remove the edges from graph
+                            for (int e = 0; e < toDeleteNode.edgeList.Count; e++) {
+                                readgml.EDGE tDNEdge = toDeleteNode.edgeList[e];
+
+                                // find it in the graph list and delete it
+                                for(int graphE = 0; graphE < graph.edges.Count; graphE++) {
+                                    readgml.EDGE edge = graph.edges[graphE];
+                                    if (edge.source == tDNEdge.source && edge.target == tDNEdge.target) {
+                                        graph.edges.RemoveAt(graphE);
+                                        Transform edgeToRemove = ForceDirected.edgeList[graphE];
+                                        ForceDirected.edgeList.RemoveAt(graphE);
+                                        GameObject.Destroy(edgeToRemove.gameObject);
+                                        graph.n_edges--;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            // remove node from graph
+                            graph.nodes.Remove(dolphinID);
+                            ForceDirected.nodeList[dolphinID].gameObject.SetActive(false);
+
+                            // recalculate the graph
+                            ForceDirected.InitGraph(graph);
+                            ForceDirected.GenerateGraph();
+                            taggedText.GetComponent<UnityEngine.UI.Text>().text = "Try deleting";
+                            defaultFOV = defaultFOV + 5;
+                            camera.fieldOfView = defaultFOV;
+                        }
+                    }
+                }
+            }
 		}
 
 		// CHANGE SELECT MODE (LEFT HAND): 1 FINGER = NORMAL SELECT; 2 FINGER = VOLUME SELECT; 3 FINGER = SEQUENTIAL SELECT
@@ -118,7 +172,7 @@ public class GraphController : MonoBehaviour {
 		}
 
 		// ROTATE GRAPH
-		else if (controller.Frame().Hands.Count == 1 && leftHand.IsRight && tipDistance < 0.017 && rightHand.PinchStrength == 1.0 
+		else if (controller.Frame().Hands.Count == 1 && leftHand.IsRight && tipDistance < 0.02 && rightHand.PinchStrength == 1.0 
 			&& rightHand.GrabStrength != 1.0 && extendedR.Count > 1)
         {
             handDelta = currPosition - prevPosition;
@@ -159,7 +213,7 @@ public class GraphController : MonoBehaviour {
 				if(timeDiff > 2) {
 					startAction = false;
 					// do action here
-					camera.fieldOfView = 65;
+					camera.fieldOfView = defaultFOV;
 				}
 			}
 		}

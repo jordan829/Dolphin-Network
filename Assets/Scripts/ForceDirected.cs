@@ -55,7 +55,14 @@ public class ForceDirected : MonoBehaviour {
 
 			// Calculate Repulsion
 			for(int i = 0; i < nodes_length; i++) {
-				readgml.NODE node_v = graph.nodes [i];
+                readgml.NODE node_v;
+                if(graph.nodes.ContainsKey(i)) {
+                    node_v = graph.nodes[i];
+                }
+                else {
+                    continue;
+                }
+
 				if (i == 0) {
 					node_v.offset_x = 0;
 					node_v.offset_y = 0;
@@ -68,7 +75,13 @@ public class ForceDirected : MonoBehaviour {
 
 
 				for(int j = i+1; j < nodes_length; j++) {
-					readgml.NODE node_u = graph.nodes [j];
+					readgml.NODE node_u;
+                    if (graph.nodes.ContainsKey(j)) {
+                        node_u = graph.nodes[j];
+                    }
+                    else {
+                        continue;
+                    }
 					if (i != j) {
 						node_u.temp_x = (node_u.temp_x != -50) ? node_u.temp_x : node_u.x_pos;
 						node_u.temp_y = (node_u.temp_y != -50) ? node_u.temp_y : node_u.y_pos;
@@ -136,7 +149,13 @@ public class ForceDirected : MonoBehaviour {
 
 			// Calculate Final Positions
 			for(int i = 0; i < nodes_length; i++) {
-				readgml.NODE node = graph.nodes [i];
+                readgml.NODE node;
+                if (graph.nodes.ContainsKey(i)) {
+                    node = graph.nodes[i];
+                }
+                else {
+                    continue;
+                }
 				float delta_length = Mathf.Max (epsilon, Mathf.Sqrt (node.offset_x * node.offset_x + node.offset_y * node.offset_y + node.offset_z * node.offset_z));
 
 				node.temp_x += (node.offset_x / delta_length) * Mathf.Min (delta_length, temperature);
@@ -170,33 +189,31 @@ public class ForceDirected : MonoBehaviour {
 		layout_iterations = max_iterations;
 	}
 
-	public void DrawGraph()
-	{
-		if(drawn) {
-			/* print (gObjects.Count);
-			while( gObjects.Count > 0 ) {
-				Destroy (gObjects[0]);
-				gObjects.RemoveAt (0);
-			}
-			drawn = false; */
+    // call only once to take the graph information and instantiate nodes on unity
+    public void InstantiateGraph()
+    {
+        if (drawn)
+        {
             return;
-		}
+        }
 
-		for (int i = 0; i < nodes_length; i++) {
-			readgml.NODE n = graph.nodes [i];
+        for (int i = 0; i < nodes_length; i++)
+        {
+            readgml.NODE n = graph.nodes[i];
             Transform node = ((Transform)Instantiate(Node_fab, new Vector3(n.x_pos, n.y_pos, n.z_pos), Quaternion.identity));
-			node.name = i.ToString ();
-			nodeList.Add (node);
+            node.name = i.ToString();
+            nodeList.Add(node);
 
             // set the node parent to be layout
             node.parent = transform;
-		}
+        }
 
-        for (int i = 0; i < edges_length; i++) {
+        for (int i = 0; i < edges_length; i++)
+        {
             // instantiate edge
             readgml.EDGE e = graph.edges[i];
             Transform edge = ((Transform)Instantiate(Edge_fab));
-			edge.name = "(" + e.source + "," + e.target + ")";
+            edge.name = "(" + e.source + "," + e.target + ")";
             edgeList.Add(edge);
 
             // grab coordinates from graph edges
@@ -205,6 +222,7 @@ public class ForceDirected : MonoBehaviour {
             positions[0] = new Vector3(x.x_pos, x.y_pos, x.z_pos);
             x = graph.nodes[graph.edges[i].target];
             positions[1] = new Vector3(x.x_pos, x.y_pos, x.z_pos);
+            edge.gameObject.GetComponent<LineRenderer>().useWorldSpace = false;
             edge.gameObject.GetComponent<LineRenderer>().SetPositions(positions);
 
             // set the edge parent to be layout
@@ -212,11 +230,52 @@ public class ForceDirected : MonoBehaviour {
         }
 
         drawn = true;
+    }
+
+	public void UpdateGraph()
+	{
+		if(!drawn) {
+            InstantiateGraph();
+            return;
+		}
+
+		for (int i = 0; i < nodes_length; i++) {
+			readgml.NODE n;
+            if (graph.nodes.ContainsKey(i)) {
+                n = graph.nodes[i];
+            }
+            else {
+                continue;
+            }
+            Transform node = nodeList[i];
+            node.localPosition = new Vector3(n.x_pos, n.y_pos, n.z_pos);
+
+            //node.parent = transform;
+		}
+
+        for (int i = 0; i < edges_length; i++) {
+            // instantiate edge
+            readgml.EDGE e = graph.edges[i];
+            Transform edge = edgeList[i];
+
+            // grab coordinates from graph edges
+            Vector3[] positions = new Vector3[2];
+            readgml.NODE x = graph.nodes[e.source];
+            positions[0] = new Vector3(x.x_pos, x.y_pos, x.z_pos);
+            x = graph.nodes[e.target];
+            positions[1] = new Vector3(x.x_pos, x.y_pos, x.z_pos);
+            edge.gameObject.GetComponent<LineRenderer>().SetPositions(positions);
+
+           // edge.parent = transform;
+
+        }
+
+        drawn = true;
 	}
 
 	public void Update()
 	{
-		DrawGraph();
+		UpdateGraph();
 	}
 
 	// end of ForceDirected.cs
