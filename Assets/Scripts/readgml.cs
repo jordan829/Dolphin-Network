@@ -9,6 +9,10 @@ public class readgml : MonoBehaviour {
 
 	public struct EDGE {
 		public int target, source;
+
+		public static bool compareEdge(EDGE e1, EDGE e2) {
+			return e1.target == e2.target && e1.source == e2.source;
+		}
 	}
 
 	public struct NODE {

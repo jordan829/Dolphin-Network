@@ -213,7 +213,7 @@ public class ForceDirected : MonoBehaviour {
             // instantiate edge
             readgml.EDGE e = graph.edges[i];
             Transform edge = ((Transform)Instantiate(Edge_fab));
-            edge.name = "(" + e.source + "," + e.target + ")";
+            edge.name = e.source + "," + e.target;
             edgeList.Add(edge);
 
             // grab coordinates from graph edges
